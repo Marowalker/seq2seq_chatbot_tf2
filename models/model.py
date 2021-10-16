@@ -294,7 +294,7 @@ class TransformerModel:
 
         self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS, callbacks=[callback])
 
-        self.model.save(os.path.join(constants.TRAINED_MODELS, self.model_name))
+        self.model.save_weights(os.path.join(constants.TRAINED_MODELS, self.model_name))
 
     def evaluate(self, sentence):
         sentence = tf.expand_dims(sentence, axis=0)
@@ -321,7 +321,7 @@ class TransformerModel:
         return tf.squeeze(output, axis=0)
 
     def predict(self, sentence):
-        self.model.load(os.path.join(constants.TRAINED_MODELS, self.model_name))
+        self.model.load_weights(os.path.join(constants.TRAINED_MODELS, self.model_name))
         prediction = self.evaluate(sentence)
 
         predicted_sentence = decode(prediction, self.vocab)
