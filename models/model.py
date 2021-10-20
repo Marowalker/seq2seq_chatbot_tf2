@@ -255,9 +255,9 @@ def transformer(vocab_size,
 
 
 class TransformerModel:
-    def __init__(self, vocab, num_layers, units, d_model, num_heads, dropout, model_name):
-        if not os.path.exists(constants.TRAINED_MODELS):
-            os.mkdir(constants.TRAINED_MODELS)
+    def __init__(self, vocab, num_layers, units, d_model, num_heads, dropout, model_path):
+        if not os.path.exists(model_path):
+            os.mkdir(model_path)
 
         self.vocab = vocab
         self.vocab_size = len(vocab)
@@ -266,7 +266,7 @@ class TransformerModel:
         self.d_model = d_model
         self.num_heads = num_heads
         self.dropout = dropout
-        self.model_name = model_name
+        self.model_path = model_path
 
         self._build()
 
@@ -290,11 +290,22 @@ class TransformerModel:
     def train(self, dataset_train, dataset_val):
         # logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
         # tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, histogram_freq=1)
+        if os.listdir(self.model_path):
+            print("Load model from last checkpoint...\n")
+            self.model.load_weights(self.model_path)
+
+        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=self.model_path,
+            save_weights_only=True,
+            monitor='val_accuracy',
+            mode='max',
+            save_freq=100,
+            save_best_only=True)
+
         callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
-        self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS, callbacks=[callback])
-
-        self.model.save_weights(os.path.join(constants.TRAINED_MODELS, self.model_name))
+        self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS,
+                       callbacks=[model_checkpoint_callback, callback])
 
     def evaluate(self, sentence):
         sentence = tf.expand_dims(sentence, axis=0)
@@ -321,7 +332,7 @@ class TransformerModel:
         return tf.squeeze(output, axis=0)
 
     def predict(self, sentence):
-        self.model.load_weights(os.path.join(constants.TRAINED_MODELS, self.model_name))
+        self.model.load_weights(self.model_path)
         prediction = self.evaluate(sentence)
 
         predicted_sentence = decode(prediction, self.vocab)
