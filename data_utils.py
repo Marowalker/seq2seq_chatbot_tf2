@@ -91,8 +91,18 @@ def process_data(filename, vocab, max_length=constants.MAX_LENGTH):
     return padded_inputs, padded_outputs
 
 
-def get_tf_dataset(data_file, vocab_dict, max_length=constants.MAX_LENGTH):
+def get_dataset(data_file, vocab_dict, out_file, max_length=constants.MAX_LENGTH):
     inputs, outputs = process_data(data_file, vocab_dict, max_length)
+    dataset = {
+        'inputs': inputs,
+        'outputs': outputs
+    }
+    with open(out_file, 'wb') as f:
+        pickle.dump(dataset, f)
+    return dataset
+
+
+def get_tf_dataset(inputs, outputs):
     dataset = tf.data.Dataset.from_tensor_slices((
         {
             'inputs': inputs,
@@ -104,8 +114,14 @@ def get_tf_dataset(data_file, vocab_dict, max_length=constants.MAX_LENGTH):
     ))
     dataset = dataset.shuffle(constants.BUFFER_SIZE)
     dataset = dataset.batch(constants.BATCH_SIZE)
-    # dataset = dataset.cache()
-    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    dataset = dataset.cache()
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
+
+
+def load_dataset(filename):
+    with open(filename, 'rb') as f:
+        dataset = pickle.load(f)
     return dataset
 
 
