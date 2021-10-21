@@ -10,7 +10,9 @@ DATA_DEV = DATA + 'validation/dialogues_validation.txt'
 DATA_TEST = DATA + 'test/dialogues_test.txt'
 DATA_FULL = DATA + 'ijcnlp_dailydialog/dialogues_text.txt'
 
-VOCAB = DATA + 'vocab.pkl'
+PICKLE = DATA + 'pickle/'
+
+VOCAB = PICKLE + 'vocab.pkl'
 
 START = '$START$'
 END = '$END$'
@@ -26,10 +28,11 @@ NUM_LAYERS = 2  # 6
 D_MODEL = 128  # 512
 NUM_HEADS = 8
 UNITS = 256  # 2048
-DROPOUT = 0.1
+DROPOUT = 0.5
 
 EPOCHS = 100
 
 TRAINED_MODELS = 'trained_models/'
 
-IS_REBUILD = 1
+IS_REBUILD = 0  # 0 or 1
+

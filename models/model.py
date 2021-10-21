@@ -52,6 +52,18 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         return outputs
 
+    def get_config(self):
+        config = {
+            'num_heads': self.num_heads,
+            'd_model': self.d_model,
+            'depth': self.depth,
+            # 'query_dense': self.query_dense.numpy(),
+            # 'key_dense': self.key_dense.numpy(),
+            # 'value_dense': self.value_dense.numpy(),
+            # 'dense': self.dense
+        }
+        return config
+
 
 class PositionalEncoding(tf.keras.layers.Layer):
 
@@ -79,6 +91,12 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         return inputs + self.pos_encoding[:, :tf.shape(inputs)[1], :]
+
+    def get_config(self):
+        config = {
+            'pos_encoding': self.pos_encoding
+        }
+        return config
 
 
 def encoder_layer(units, d_model, num_heads, dropout, name="encoder_layer"):
@@ -267,6 +285,7 @@ class TransformerModel:
         self.num_heads = num_heads
         self.dropout = dropout
         self.model_path = model_path
+        self.model = None
 
         self._build()
 
@@ -290,22 +309,27 @@ class TransformerModel:
     def train(self, dataset_train, dataset_val):
         # logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
         # tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, histogram_freq=1)
+        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=self.model_path + 'ckpt.{epoch:02d}.hdf5',
+            monitor='accuracy',
+            mode='auto',
+            save_freq='epoch',
+            save_best_only=True,
+            save_weights_only=True
+        )
+
         if os.listdir(self.model_path):
             print("Load model from last checkpoint...\n")
-            self.model.load_weights(self.model_path)
+            checkpoint_file, init_epoch = get_checkpoint(self.model_path)
+            self.model.load_weights(self.model_path + checkpoint_file)
 
-        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=self.model_path,
-            save_weights_only=True,
-            monitor='val_accuracy',
-            mode='max',
-            save_freq=100,
-            save_best_only=True)
+        else:
+            init_epoch = 0
 
-        callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+        # callback = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
 
-        self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS,
-                       callbacks=[model_checkpoint_callback, callback])
+        self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS, initial_epoch=init_epoch,
+                       callbacks=[model_checkpoint_callback])
 
     def evaluate(self, sentence):
         sentence = tf.expand_dims(sentence, axis=0)
@@ -332,7 +356,8 @@ class TransformerModel:
         return tf.squeeze(output, axis=0)
 
     def predict(self, sentence):
-        self.model.load_weights(self.model_path)
+        checkpoint_file, init_epoch = get_checkpoint(self.model_path)
+        self.model.load_weights(self.model_path + checkpoint_file)
         prediction = self.evaluate(sentence)
 
         predicted_sentence = decode(prediction, self.vocab)

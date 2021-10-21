@@ -1,5 +1,4 @@
-from abc import ABC
-
+import os
 import tensorflow as tf
 import constants
 
@@ -65,6 +64,14 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
         self.warmup_steps = warmup_steps
 
+    def get_config(self):
+        config = {
+            'd_model': self.d_model,
+            'warmup_steps': self.warmup_steps,
+
+        }
+        return config
+
     def __call__(self, step):
         arg1 = tf.math.rsqrt(step)
         arg2 = step * (self.warmup_steps ** -1.5)
@@ -79,3 +86,27 @@ def decode(sequence, vocab):
         if s in vocab_idx:
             tokens.append(vocab_idx[s])
     return ' '.join(tokens).strip()
+
+
+def get_checkpoint(checkpoint_path):
+    if not os.listdir(checkpoint_path):
+        return
+
+    files_int = list()
+
+    for i in os.listdir(checkpoint_path):
+        epoch = int(i.split('.')[1])
+        files_int.append(epoch)
+
+    max_value = max(files_int)
+
+    for i in os.listdir(checkpoint_path):
+        epoch = int(i.split('.')[1])
+        if epoch > max_value:
+            pass
+        elif epoch < max_value:
+            pass
+        else:
+            final_file = i
+
+    return final_file, max_value
