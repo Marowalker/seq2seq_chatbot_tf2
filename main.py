@@ -2,6 +2,7 @@ import constants
 import tensorflow as tf
 from data_utils import *
 from models.model import TransformerModel
+import numpy as np
 
 
 tf.random.set_seed(1234)
@@ -15,12 +16,18 @@ def main():
         print("Buiding dataset objects...")
         train = get_dataset(constants.DATA_TRAIN, vocab, constants.PICKLE + 'train.pkl')
         dev = get_dataset(constants.DATA_DEV, vocab, constants.PICKLE + 'dev.pkl')
-        # test = get_dataset(constants.DATA_TEST, vocab, constants.PICKLE + 'test.pkl')
+        test = get_dataset(constants.DATA_TEST, vocab, constants.PICKLE + 'test.pkl')
 
     else:
         print("Loading dataset objects:...")
         train = load_dataset(constants.PICKLE + 'train.pkl')
         dev = load_dataset(constants.PICKLE + 'dev.pkl')
+        test = load_dataset(constants.PICKLE + 'test.pkl')
+
+    props = ['inputs', 'outputs']
+    for prop in props:
+        train[prop] = np.concatenate((train[prop], dev[prop]), axis=0)
+        dev[prop] = test[prop]
 
     print("Number of training samples:", len(train['inputs']))
     print("Number of validation samples:", len(dev['inputs']))

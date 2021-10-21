@@ -38,6 +38,7 @@ def make_vocab(filein, fileout):
                 words = nltk.word_tokenize(sent)
                 for w in words:
                     temp.append(w.lower())
+
         all_words = sorted(set(temp))
         all_words.append(constants.START)
         all_words.append(constants.END)
@@ -71,8 +72,8 @@ def process_data(filename, vocab, max_length=constants.MAX_LENGTH):
         a_idx = []
 
         for wq in q_tokens:
-            if wq in vocab:
-                q_idx.append(vocab[wq])
+            if wq.lower() in vocab:
+                q_idx.append(vocab[wq.lower()])
             else:
                 q_idx.append(vocab[constants.UNK])
 
@@ -114,8 +115,8 @@ def get_tf_dataset(inputs, outputs):
     ))
     dataset = dataset.shuffle(constants.BUFFER_SIZE)
     dataset = dataset.batch(constants.BATCH_SIZE)
-    dataset = dataset.cache()
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    dataset = dataset.cache()
     return dataset
 
 
