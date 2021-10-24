@@ -8,7 +8,7 @@ import constants
 
 def daily_conversations(filename):
     with open(filename, 'r', encoding='utf-8') as f:
-        conversations = [line.split(' __eou__')[:-1] for line in f.readlines()]
+        conversations = [line.lower().split(' __eou__')[:-1] for line in f.readlines()]
         return conversations
 
 

@@ -1,15 +1,16 @@
 import constants
-import tensorflow as tf
-from data_utils import *
-from models.model import TransformerModel
+from preprocessing.data_to_sequence import *
+from models.self_transformer import TransformerModel
 import numpy as np
+from preprocessing.data_to_pandas import *
+from models.simple_seq2seq import SimpleSeq2Seq
 
 
 tf.random.set_seed(1234)
 AUTO = tf.data.experimental.AUTOTUNE
 
 
-def main():
+def main_self_transformer():
     vocab = make_vocab(constants.DATA_FULL, constants.VOCAB)
 
     if constants.IS_REBUILD == 1:
@@ -37,11 +38,31 @@ def main():
 
     with tf.device('/device:GPU:0'):
         chatbot_model = TransformerModel(vocab, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
-                                         constants.NUM_HEADS, constants.DROPOUT, constants.TRAINED_MODELS)
+                                         constants.NUM_HEADS, constants.DROPOUT,
+                                         constants.TRAINED_MODELS + 'self_transformer/')
         chatbot_model.train(train, dev)
 
-        # chatbot_model.predict('hello')
+        # sentence = 'hello there'
+        # sentence = process_single(sentence, vocab)
+        # chatbot_model.predict(sentence)
+
+
+def main_seq2seq():
+    train = qa_to_pandas(constants.DATA_TRAIN, fileout=constants.DATA + 'train/train.csv')
+    dev = qa_to_pandas(constants.DATA_DEV, fileout=constants.DATA + 'validation/validation.csv')
+    test = qa_to_pandas(constants.DATA_TEST, fileout=constants.DATA + 'test/test.csv')
+
+    model = SimpleSeq2Seq('bert', 'bert-base-uncased', 'bert-base-uncased', constants.EPOCHS,
+                          constants.SEQ2SEQ + 'train/', constants.SEQ2SEQ + 'eval/')
+    model.train(train, dev)
+
+    model.evaluate(test)
+
+    sentence = ['hello there']
+
+    model.predict(sentence)
 
 
 if __name__ == '__main__':
-    main()
+    # main_self_transformer()
+    main_seq2seq()

@@ -322,7 +322,6 @@ class TransformerModel:
             print("Load model from last checkpoint...\n")
             checkpoint_file, init_epoch = get_checkpoint(self.model_path)
             self.model.load_weights(self.model_path + checkpoint_file)
-
         else:
             init_epoch = 0
 
@@ -358,9 +357,12 @@ class TransformerModel:
     def predict(self, sentence):
         checkpoint_file, init_epoch = get_checkpoint(self.model_path)
         self.model.load_weights(self.model_path + checkpoint_file)
+
         prediction = self.evaluate(sentence)
 
-        predicted_sentence = decode(prediction, self.vocab)
+        # print(prediction.numpy())
+
+        predicted_sentence = decode(prediction.numpy(), self.vocab)
 
         print('Input: {}'.format(sentence))
         print('Output: {}'.format(predicted_sentence))

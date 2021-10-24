@@ -83,7 +83,7 @@ def decode(sequence, vocab):
     vocab_idx = {v: k for k, v in vocab.items()}
     tokens = []
     for s in sequence:
-        if s in vocab_idx:
+        if s in vocab_idx and s < 23068:
             tokens.append(vocab_idx[s])
     return ' '.join(tokens).strip()
 
