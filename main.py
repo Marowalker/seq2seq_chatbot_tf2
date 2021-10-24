@@ -11,13 +11,14 @@ AUTO = tf.data.experimental.AUTOTUNE
 
 
 def main_self_transformer():
-    vocab = make_vocab(constants.DATA_FULL, constants.VOCAB)
+    # vocab = make_vocab(constants.DATA_FULL, constants.VOCAB)
+    tokenizer = make_tokenizer(constants.DATA_FULL)
 
     if constants.IS_REBUILD == 1:
         print("Buiding dataset objects...")
-        train = get_dataset(constants.DATA_TRAIN, vocab, constants.PICKLE + 'train.pkl')
-        dev = get_dataset(constants.DATA_DEV, vocab, constants.PICKLE + 'dev.pkl')
-        test = get_dataset(constants.DATA_TEST, vocab, constants.PICKLE + 'test.pkl')
+        train = get_dataset(constants.DATA_TRAIN, constants.PICKLE + 'train.pkl', tokenizer)
+        dev = get_dataset(constants.DATA_DEV, constants.PICKLE + 'dev.pkl', tokenizer)
+        test = get_dataset(constants.DATA_TEST, constants.PICKLE + 'test.pkl', tokenizer)
 
     else:
         print("Loading dataset objects:...")
@@ -37,14 +38,14 @@ def main_self_transformer():
     dev = get_tf_dataset(dev['inputs'], dev['outputs'])
 
     with tf.device('/device:GPU:0'):
-        chatbot_model = TransformerModel(vocab, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
+        chatbot_model = TransformerModel(tokenizer, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
                                          constants.NUM_HEADS, constants.DROPOUT,
                                          constants.TRAINED_MODELS + 'self_transformer/')
-        chatbot_model.train(train, dev)
+        # chatbot_model.train(train, dev)
 
-        # sentence = 'hello there'
+        sentence = ['hello there']
         # sentence = process_single(sentence, vocab)
-        # chatbot_model.predict(sentence)
+        chatbot_model.predict(sentence)
 
 
 def main_seq2seq():
@@ -64,5 +65,5 @@ def main_seq2seq():
 
 
 if __name__ == '__main__':
-    # main_self_transformer()
-    main_seq2seq()
+    main_self_transformer()
+    # main_seq2seq()

@@ -1,4 +1,6 @@
 import os
+
+import constants
 from models.utils import *
 
 
@@ -205,9 +207,9 @@ def decoder(vocab_size,
         shape=(1, None, None), name='look_ahead_mask')
     padding_mask = tf.keras.Input(shape=(1, 1, None), name='padding_mask')
 
-    embeddings = tf.keras.layers.Embedding(vocab_size + 1, d_model)(inputs)
+    embeddings = tf.keras.layers.Embedding(vocab_size, d_model)(inputs)
     embeddings *= tf.math.sqrt(tf.cast(d_model, tf.float32))
-    embeddings = PositionalEncoding(vocab_size + 1, d_model)(embeddings)
+    embeddings = PositionalEncoding(vocab_size, d_model)(embeddings)
 
     outputs = tf.keras.layers.Dropout(rate=dropout)(embeddings)
 
@@ -273,12 +275,12 @@ def transformer(vocab_size,
 
 
 class TransformerModel:
-    def __init__(self, vocab, num_layers, units, d_model, num_heads, dropout, model_path):
+    def __init__(self, tokenizer, num_layers, units, d_model, num_heads, dropout, model_path):
         if not os.path.exists(model_path):
             os.mkdir(model_path)
 
-        self.vocab = vocab
-        self.vocab_size = len(vocab)
+        self.tokenizer = tokenizer
+        self.vocab_size = len(tokenizer.word_counts) + 1
         self.num_layers = num_layers
         self.units = units
         self.d_model = d_model
@@ -299,7 +301,7 @@ class TransformerModel:
             self.learning_rate, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
 
         with constants.strategy.scope():
-            self.model = transformer(self.vocab_size + 1, self.num_layers, self.units, self.d_model, self.num_heads,
+            self.model = transformer(self.vocab_size, self.num_layers, self.units, self.d_model, self.num_heads,
                                      self.dropout)
 
             self.model.compile(optimizer=self.optimizer, loss=loss_function, metrics=[accuracy])
@@ -311,7 +313,7 @@ class TransformerModel:
         # tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, histogram_freq=1)
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=self.model_path + 'ckpt.{epoch:02d}.hdf5',
-            monitor='accuracy',
+            monitor='val_accuracy',
             mode='auto',
             save_freq='epoch',
             save_best_only=True,
@@ -331,11 +333,13 @@ class TransformerModel:
                        callbacks=[model_checkpoint_callback])
 
     def evaluate(self, sentence):
+        sentence = self.tokenizer.texts_to_sequences(sentence)[0]
         sentence = tf.expand_dims(sentence, axis=0)
 
-        output = tf.expand_dims([self.vocab[constants.START]], axis=0)
+        output = self.tokenizer.texts_to_sequences([constants.START])[0]
+        output = tf.expand_dims(output, axis=0)
 
-        end = self.vocab[constants.END]
+        end = self.tokenizer.texts_to_sequences([constants.END])[0]
 
         for i in range(constants.MAX_LENGTH):
             predictions = self.model(inputs=[sentence, output], training=False)
@@ -362,7 +366,9 @@ class TransformerModel:
 
         # print(prediction.numpy())
 
-        predicted_sentence = decode(prediction.numpy(), self.vocab)
+        # predicted_sentence = decode(prediction.numpy(), self.vocab)
+        # print(prediction.to_list())
+        predicted_sentence = self.tokenizer.sequences_to_texts([prediction.numpy().tolist()[1:]])
 
         print('Input: {}'.format(sentence))
         print('Output: {}'.format(predicted_sentence))
