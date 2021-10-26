@@ -59,7 +59,7 @@ NUM_HEADS = 8
 UNITS = 256  # 2048
 DROPOUT = 0.5
 
-EPOCHS = 5
+EPOCHS = 100
 
 TRAINED_MODELS = 'trained_models/'
 

@@ -41,11 +41,10 @@ def main_self_transformer():
         chatbot_model = TransformerModel(tokenizer, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
                                          constants.NUM_HEADS, constants.DROPOUT,
                                          constants.TRAINED_MODELS + 'self_transformer/')
-        # chatbot_model.train(train, dev)
+        chatbot_model.train(train, dev)
 
-        sentence = ['hello there']
-        # sentence = process_single(sentence, vocab)
-        chatbot_model.predict(sentence)
+        # sentence = ['hello there']
+        # chatbot_model.predict(sentence)
 
 
 def main_seq2seq():
