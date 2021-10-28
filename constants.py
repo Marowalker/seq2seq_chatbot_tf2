@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-MAX_LENGTH = 300
+MAX_LENGTH = 50
 
 DATA = 'data/'
 

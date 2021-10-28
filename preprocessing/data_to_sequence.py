@@ -42,12 +42,21 @@ def make_tokenizer(filein):
     return tokenizer
 
 
-def preprocessing_keras(filename, tokenizer, max_length=constants.MAX_LENGTH):
+def preprocessing_test(filename):
+    convo = daily_conversations(filename)
+    questions, answers = conversation_to_qa(convo)
+    return questions, answers
+
+
+def preprocessing_keras(filename, tokenizer, max_length=constants.MAX_LENGTH, samples=None):
     convo = daily_conversations(filename)
     questions, answers = conversation_to_qa(convo)
 
     new_questions = [constants.START + ' ' + q + ' ' + constants.END for q in questions]
     new_answers = [constants.START + ' ' + a + ' ' + constants.END for a in answers]
+
+    if samples is not None:
+        return questions[:samples], answers[:samples]
 
     inputs = tokenizer.texts_to_sequences(new_questions)
     outputs = tokenizer.texts_to_sequences(new_answers)
@@ -105,6 +114,3 @@ def process_single(sentence, vocab):
             res.append(vocab[constants.UNK])
     return res
 
-# vocab_words = make_vocab(filein=constants.DATA_FULL, fileout=constants.VOCAB)
-# train = get_tf_dataset(data_file=constants.DATA_TRAIN, vocab_dict=vocab_words)
-# print(train)

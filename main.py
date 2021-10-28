@@ -18,18 +18,13 @@ def main_self_transformer():
         print("Buiding dataset objects...")
         train = get_dataset(constants.DATA_TRAIN, constants.PICKLE + 'train.pkl', tokenizer)
         dev = get_dataset(constants.DATA_DEV, constants.PICKLE + 'dev.pkl', tokenizer)
-        test = get_dataset(constants.DATA_TEST, constants.PICKLE + 'test.pkl', tokenizer)
+        # test = get_dataset(constants.DATA_TEST, constants.PICKLE + 'test.pkl', tokenizer)
 
     else:
         print("Loading dataset objects:...")
         train = load_dataset(constants.PICKLE + 'train.pkl')
         dev = load_dataset(constants.PICKLE + 'dev.pkl')
-        test = load_dataset(constants.PICKLE + 'test.pkl')
-
-    props = ['inputs', 'outputs']
-    for prop in props:
-        train[prop] = np.concatenate((train[prop], dev[prop]), axis=0)
-        dev[prop] = test[prop]
+        # test = load_dataset(constants.PICKLE + 'test.pkl')
 
     print("Number of training samples:", len(train['inputs']))
     print("Number of validation samples:", len(dev['inputs']))
@@ -37,13 +32,20 @@ def main_self_transformer():
     train = get_tf_dataset(train['inputs'], train['outputs'])
     dev = get_tf_dataset(dev['inputs'], dev['outputs'])
 
+    test_questions, test_answers = preprocessing_test(constants.DATA_TEST)
+
     with tf.device('/device:GPU:0'):
         chatbot_model = TransformerModel(tokenizer, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
                                          constants.NUM_HEADS, constants.DROPOUT,
                                          constants.TRAINED_MODELS + 'self_transformer/')
-        chatbot_model.train(train, dev)
+        # chatbot_model.train(train, dev)
 
-        # sentence = ['hello there']
+        # evaluate test set
+        chatbot_model.evaluate_coherence(test_questions)
+        # chatbot_model.evaluate_bleu(test_questions, test_answers)
+        # chatbot_model.evaluate_rouge(test_questions, test_answers)
+
+        # sentence = ['hello there', 'nice to meet you']
         # chatbot_model.predict(sentence)
 
 

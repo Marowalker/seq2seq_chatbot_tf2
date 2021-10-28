@@ -1,7 +1,11 @@
 import os
-
+import numpy as np
 import constants
 from models.utils import *
+from sklearn.metrics.pairwise import cosine_similarity
+from keras.preprocessing.sequence import pad_sequences
+from nltk.translate.bleu_score import corpus_bleu
+import tensorflow_text as tft
 
 
 class MultiHeadAttention(tf.keras.layers.Layer):
@@ -357,6 +361,66 @@ class TransformerModel:
             output = tf.concat([output, predicted_id], axis=-1)
 
         return tf.squeeze(output, axis=0)
+
+    def evaluate_coherence(self, inputs):
+        checkpoint_file, init_epoch = get_checkpoint(self.model_path)
+        self.model.load_weights(self.model_path + checkpoint_file)
+
+        predictions = []
+
+        for sentence in inputs:
+            prediction = self.evaluate(sentence)
+            predictions.append(prediction.numpy().tolist()[1:])
+
+        # print(predictions)
+        predictions = pad_sequences(predictions, maxlen=constants.MAX_LENGTH, padding='post')
+        answers = self.tokenizer.texts_to_sequences(inputs)
+        answers = pad_sequences(answers, maxlen=constants.MAX_LENGTH, padding='post')
+        print(1 - np.average(cosine_similarity(answers, predictions)))
+        print('\n')
+
+    def evaluate_bleu(self, inputs, outputs):
+        checkpoint_file, init_epoch = get_checkpoint(self.model_path)
+        self.model.load_weights(self.model_path + checkpoint_file)
+
+        predictions = []
+
+        for sentence in inputs:
+            prediction = self.evaluate(sentence)
+            answer = self.tokenizer.sequences_to_texts([prediction.numpy().tolist()[1:]])[0]
+            predictions.append(answer.split())
+
+        answers = [i.split() for i in outputs]
+        bleu_1 = corpus_bleu(answers, predictions, weights=(1, 0, 0, 0))
+        bleu_2 = corpus_bleu(answers, predictions, weights=(0.5, 0.5, 0, 0))
+        bleu_3 = corpus_bleu(answers, predictions, weights=(0.33, 0.33, 0.33, 0))
+        bleu_4 = corpus_bleu(answers, predictions)
+        print("BLEU-1 score: ", bleu_1)
+        print("BLEU-2 score: ", bleu_2)
+        print("BLEU-3 score: ", bleu_3)
+        print("BLEU-4 score: ", bleu_4)
+        print('\n')
+
+    def evaluate_rouge(self, inputs, outputs):
+        checkpoint_file, init_epoch = get_checkpoint(self.model_path)
+        self.model.load_weights(self.model_path + checkpoint_file)
+
+        predictions = []
+
+        for sentence in inputs:
+            prediction = self.evaluate(sentence)
+            answer = self.tokenizer.sequences_to_texts([prediction.numpy().tolist()[1:]])[0]
+            predictions.append(answer.split())
+
+        answers = [i.split() for i in outputs]
+
+        predictions = tf.ragged.constant(predictions)
+        answers = tf.ragged.constant(answers)
+        result = tft.metrics.rouge_l(predictions, answers)
+        print('F-Measure: %s' % np.average(result.f_measure.numpy()))
+        print('P-Measure: %s' % np.average(result.p_measure.numpy()))
+        print('R-Measure: %s' % np.average(result.r_measure.numpy()))
+        print('\n')
 
     def predict(self, sentence):
         checkpoint_file, init_epoch = get_checkpoint(self.model_path)
