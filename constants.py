@@ -65,4 +65,4 @@ TRAINED_MODELS = 'trained_models/'
 
 SEQ2SEQ = TRAINED_MODELS + 'seq2seq/'
 
-IS_REBUILD = 0  # 0 or 1
+IS_REBUILD = 1  # 0 or 1
