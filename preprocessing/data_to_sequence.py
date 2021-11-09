@@ -14,6 +14,22 @@ def daily_conversations(filename):
         return conversations
 
 
+def persona_conversations(filename):
+    conversations = []
+    temp = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            if line[0] == '1' and temp:
+                if '__SILENCE__' in temp:
+                    conversations.append(temp[1:])
+                else:
+                    conversations.append(temp)
+                temp = []
+            temp += [l.strip() for l in line[2:].split('\t')]
+    return conversations
+
+
 def conversation_to_qa(conversation):
     questions = []
     answers = []
@@ -27,8 +43,11 @@ def conversation_to_qa(conversation):
     return questions, answers
 
 
-def make_tokenizer(filein):
+def make_tokenizer(filein, persona_1, persona_2):
     convo = daily_conversations(filein)
+    convo_p1 = persona_conversations(persona_1)
+    convo_p2 = persona_conversations(persona_2)
+    convo = convo + convo_p1 + convo_p2
     sentence_list = []
 
     for c in convo:
@@ -48,8 +67,10 @@ def preprocessing_test(filename):
     return questions, answers
 
 
-def preprocessing_keras(filename, tokenizer, max_length=constants.MAX_LENGTH, samples=None):
-    convo = daily_conversations(filename)
+def preprocessing_keras(daily_file, persona_file, tokenizer, max_length=constants.MAX_LENGTH, samples=None):
+    convo = daily_conversations(daily_file)
+    convo_p = persona_conversations(persona_file)
+    convo = convo + convo_p
     questions, answers = conversation_to_qa(convo)
 
     new_questions = [constants.START + ' ' + q + ' ' + constants.END for q in questions]
@@ -67,9 +88,9 @@ def preprocessing_keras(filename, tokenizer, max_length=constants.MAX_LENGTH, sa
     return padded_inputs, padded_outputs
 
 
-def get_dataset(data_file, out_file, tokenizer, max_length=constants.MAX_LENGTH):
+def get_dataset(daily_file, persona_file, out_file, tokenizer, max_length=constants.MAX_LENGTH):
     # inputs, outputs = process_data(data_file, vocab_dict, max_length)
-    inputs, outputs = preprocessing_keras(data_file, tokenizer, max_length)
+    inputs, outputs = preprocessing_keras(daily_file, persona_file, tokenizer, max_length)
     dataset = {
         'inputs': inputs,
         'outputs': outputs,

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-MAX_LENGTH = 50
+MAX_LENGTH = 15
 
 DATA = 'data/'
 
@@ -8,6 +8,9 @@ DATA_TRAIN = DATA + 'train/dialogues_train.txt'
 DATA_DEV = DATA + 'validation/dialogues_validation.txt'
 DATA_TEST = DATA + 'test/dialogues_test.txt'
 DATA_FULL = DATA + 'ijcnlp_dailydialog/dialogues_text.txt'
+
+PERSONA_TRAIN = DATA + 'train/train_none_original_no_cands.txt'
+PERSONA_VALID = DATA + 'validation/valid_none_original_no_cands.txt'
 
 PICKLE = DATA + 'pickle/'
 
@@ -59,7 +62,7 @@ NUM_HEADS = 8
 UNITS = 256  # 2048
 DROPOUT = 0.5
 
-EPOCHS = 100
+EPOCHS = 50
 
 TRAINED_MODELS = 'trained_models/'
 

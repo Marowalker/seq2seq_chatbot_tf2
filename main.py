@@ -12,12 +12,12 @@ AUTO = tf.data.experimental.AUTOTUNE
 
 def main_self_transformer():
     # vocab = make_vocab(constants.DATA_FULL, constants.VOCAB)
-    tokenizer = make_tokenizer(constants.DATA_FULL)
+    tokenizer = make_tokenizer(constants.DATA_FULL, constants.PERSONA_TRAIN, constants.PERSONA_VALID)
 
     if constants.IS_REBUILD == 1:
         print("Buiding dataset objects...")
-        train = get_dataset(constants.DATA_TRAIN, constants.PICKLE + 'train.pkl', tokenizer)
-        dev = get_dataset(constants.DATA_DEV, constants.PICKLE + 'dev.pkl', tokenizer)
+        train = get_dataset(constants.DATA_TRAIN, constants.PERSONA_TRAIN, constants.PICKLE + 'train.pkl', tokenizer)
+        dev = get_dataset(constants.DATA_DEV, constants.PERSONA_VALID, constants.PICKLE + 'dev.pkl', tokenizer)
         # test = get_dataset(constants.DATA_TEST, constants.PICKLE + 'test.pkl', tokenizer)
 
     else:
