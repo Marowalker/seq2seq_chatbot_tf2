@@ -331,10 +331,10 @@ class TransformerModel:
         else:
             init_epoch = 0
 
-        # callback = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
+        callback = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=5)
 
         self.model.fit(dataset_train, validation_data=dataset_val, epochs=constants.EPOCHS, initial_epoch=init_epoch,
-                       callbacks=[model_checkpoint_callback])
+                       callbacks=[model_checkpoint_callback, callback])
 
     def evaluate(self, sentence):
         sentence = self.tokenizer.texts_to_sequences(sentence)[0]
@@ -376,7 +376,7 @@ class TransformerModel:
         predictions = pad_sequences(predictions, maxlen=constants.MAX_LENGTH, padding='post')
         answers = self.tokenizer.texts_to_sequences(inputs)
         answers = pad_sequences(answers, maxlen=constants.MAX_LENGTH, padding='post')
-        print(1 - np.average(cosine_similarity(answers, predictions)))
+        print(np.average(cosine_similarity(answers, predictions)))
         print('\n')
 
     def evaluate_bleu(self, inputs, outputs):

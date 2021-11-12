@@ -61,9 +61,12 @@ def make_tokenizer(filein, persona_1, persona_2):
     return tokenizer
 
 
-def preprocessing_test(filename):
+def preprocessing_test(filename, num_sample=None):
     convo = daily_conversations(filename)
     questions, answers = conversation_to_qa(convo)
+    if num_sample is not None:
+        questions = questions[:num_sample]
+        answers = answers[:num_sample]
     return questions, answers
 
 

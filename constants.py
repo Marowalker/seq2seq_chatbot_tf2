@@ -62,10 +62,10 @@ NUM_HEADS = 8
 UNITS = 256  # 2048
 DROPOUT = 0.5
 
-EPOCHS = 50
+EPOCHS = 25
 
 TRAINED_MODELS = 'trained_models/'
 
 SEQ2SEQ = TRAINED_MODELS + 'seq2seq/'
 
-IS_REBUILD = 1  # 0 or 1
+IS_REBUILD = 0  # 0 or 1

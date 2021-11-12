@@ -32,20 +32,20 @@ def main_self_transformer():
     train = get_tf_dataset(train['inputs'], train['outputs'])
     dev = get_tf_dataset(dev['inputs'], dev['outputs'])
 
-    # test_questions, test_answers = preprocessing_test(constants.DATA_TEST)
+    test_questions, test_answers = preprocessing_test(constants.DATA_TEST)
 
     with tf.device('/device:GPU:0'):
         chatbot_model = TransformerModel(tokenizer, constants.NUM_LAYERS, constants.UNITS, constants.D_MODEL,
                                          constants.NUM_HEADS, constants.DROPOUT,
                                          constants.TRAINED_MODELS + 'self_transformer/')
-        chatbot_model.train(train, dev)
+        # chatbot_model.train(train, dev)
 
         # evaluate test set
         # chatbot_model.evaluate_coherence(test_questions)
-        # chatbot_model.evaluate_bleu(test_questions, test_answers)
+        chatbot_model.evaluate_bleu(test_questions, test_answers)
         # chatbot_model.evaluate_rouge(test_questions, test_answers)
 
-        # sentence = ['hello there', 'nice to meet you']
+        # sentence = ['hello there']
         # chatbot_model.predict(sentence)
 
 
