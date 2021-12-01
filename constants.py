@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-MAX_LENGTH = 15
+MAX_LENGTH = 20
 
 DATA = 'data/'
 
@@ -60,7 +60,7 @@ NUM_LAYERS = 2  # 6
 D_MODEL = 128  # 512
 NUM_HEADS = 8
 UNITS = 256  # 2048
-DROPOUT = 0.5
+DROPOUT = 0.1
 
 EPOCHS = 25
 
@@ -68,4 +68,4 @@ TRAINED_MODELS = 'trained_models/'
 
 SEQ2SEQ = TRAINED_MODELS + 'seq2seq/'
 
-IS_REBUILD = 0  # 0 or 1
+IS_REBUILD = 1  # 0 or 1
